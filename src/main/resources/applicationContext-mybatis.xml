@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--支持注解配置Bean-->
+    <context:component-scan base-package="com.anxin.appinfosystem.*"/>
+
+    <!--引入database.properties-->
+    <!--<context:property-placeholder location="database.properties"/>-->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location">
+            <value>classpath:database.properties</value>
+        </property>
+    </bean>
+
+    <!--阿里数据源-->
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+    <!--sqlSessionFactoryBean-->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactory">
+        <!--使用数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--使用mybatis的配置文件的配置-->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!--mapper映射文件-->
+        <property name="mapperLocations">
+            <list>
+                <!--模糊匹配-->
+                <value>classpath:com/anxin/appinfosystem/dao/**/*.xml</value>
+            </list>
+        </property>
+    </bean>
+    <!--批量注入映射器实现 MapperScannerConfigurer-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.anxin.appinfosystem.dao"/>
+    </bean>
+
+    <!--事务管理器-->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="txManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--启用声明式事务注解-->
+    <tx:annotation-driven transaction-manager="txManager"/>
+
+    <!--启用aop的增强注解-->
+    <aop:aspectj-autoproxy/>
+
+</beans>
